@@ -154,8 +154,8 @@ int main(int argc, char** argv)
 {
 	String defineBehavior = createString("defineBehavior");
 	
-	BehaviorInfo behaviors[MAX_BEHAVIORS];
-	int behaviorCount;
+	BehaviorInfo* behaviors = malloc(sizeof(BehaviorInfo) * MAX_BEHAVIORS);
+	int behaviorCount = 0;
 	
 	for(int i = 1; i < argc; ++i)
 	{
@@ -172,6 +172,8 @@ int main(int argc, char** argv)
 				
 				// Read the arguments of the function into a behavior info
 				BehaviorInfo* b = &behaviors[behaviorCount++];
+				char* test = "test";
+				b->name = test;
 				
 				bool readingArgs = false;
 				int argCount = 0;
@@ -201,7 +203,7 @@ int main(int argc, char** argv)
 							case 2:
 								b->updateProcName = cloneCString(buffer);
 								break;
-							case 23:
+							case 3:
 								b->drawProcName = cloneCString(buffer);
 								break;
 						}
