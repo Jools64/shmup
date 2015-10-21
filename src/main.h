@@ -11,7 +11,6 @@
 #define false 0
 #define null 0
 
-#define PI 3.141592
 #define MAX_ENTITIES_PER_GAME 512
 #define BEHAVIOR_POOL_SIZE 1024 * 256
 #define MAX_PARTICLES_PER_GAME 1024
@@ -21,30 +20,7 @@
 #define MAX_CHARACTERS_PER_FONT 255
 #define MAX_RENDER_ITEMS_PER_GAME 2048
 
-typedef struct Pointf
-{
-	float x, y;
-} Pointf;
-
-typedef struct Pointi
-{
-	int x, y;
-} Pointi;
-
-typedef struct Color
-{
-	byte r, g, b, a;
-} Color;
-
-typedef struct Rectanglei
-{
-	int x, y, width, height;
-} Rectanglei;
-
-typedef struct Rectanglef
-{
-	float x, y, width, height;
-} Rectanglef;
+#include "utils.h"
 
 typedef struct Texture
 {
@@ -95,51 +71,7 @@ typedef struct BehaviorPool
 #include "behaviors.h"
 #include "generated.h"
 
-typedef struct Entity
-{
-	Pointi size, offset, origin;
-	Pointf position, velocity;
-	Color color;
-	bool alive, drawRectangle, collidable;
-	int type, depth;
-	float timer;
-	Texture* texture;
-	Sprite sprite;
-	
-	Behaviors behaviors;
-} Entity;
-
-typedef struct ParticleAttributef
-{
-	float value, delta, acceleration;
-} ParticleAttributef;
-
-typedef struct Particle
-{
-	Pointf position, offset;
-	Pointi origin;
-	Texture* texture;
-	ParticleAttributef speed, direction, angle, alpha, scale;
-	float life;
-	int depth;
-	bool alive;
-} Particle;
-
-typedef struct Background
-{
-	Texture* texture;
-	Pointf position, velocity;
-	bool repeatX, repeatY;
-	int depth;
-} Background;
-
-typedef struct Font
-{
-	Texture* texture;
-	Pointi characterSize;
-	int characterMap[MAX_CHARACTERS_PER_FONT];
-	//int characterMapSize;
-} Font;
+#include "engine.h"
 
 typedef struct Textures
 {
@@ -160,23 +92,6 @@ typedef struct State
 {
 	int score, lives, stage, level;
 } State;
-
-typedef struct RenderItem
-{
-	int depth, type;
-	
-	Texture* texture; 
-	Pointf position, scale; 
-	Pointi origin, sourcePosition, sourceSize;
-	float angle;
-	bool horizontalFlip, verticalFlip;
-} RenderItem;
-
-typedef struct Camera
-{
-	Pointf position;
-	Pointi size;
-} Camera;
 
 typedef struct Game
 {
