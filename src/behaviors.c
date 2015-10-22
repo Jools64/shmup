@@ -3,6 +3,7 @@
 // -----------------------------------------------------------------------------
 
 void destroyEntity(Entity* entity);
+void loadLevel(Game* game);
 
 void hurtMob(Entity* entity, int damage)
 {
@@ -50,6 +51,8 @@ void updateMobBehavior(Game* game, Behavior* behavior)
 	MobBehavior* b = (MobBehavior*)behavior;
 	Entity* entity = b->base.entity;
 	
+	entity->sprite.depth = -entity->position.y;
+
 	if(b->shootTimer > 0)
 		b->shootTimer -= game->delta;
 		
@@ -79,7 +82,7 @@ void updateMobBehavior(Game* game, Behavior* behavior)
 	else
 		entity->velocity = createPointf(0, 0);
 		
-	if(b->health < 0)
+	if(b->health <= 0)
 	{
 		bool deathAnimation = b->deathAnimation;
 		
@@ -146,6 +149,9 @@ void updatePlayerBehavior(Game* game, Behavior* behavior)
 	entity->behaviors.mob->moveDown = checkKey(game, SDLK_DOWN);
 	entity->behaviors.mob->shoot = checkKey(game, SDLK_z);
 	
+	if(getCollision(game, entity, ENEMY))
+		hurtMob(entity, 1);
+
 	if(!entity->behaviors.mob->dead)
 	{
 		entity->sprite.currentFrame = 0;
@@ -173,5 +179,72 @@ defineBehavior(enemyAi, EnemyAiBehavior,updateEnemyAiBehavior, null);
 
 void updateEnemyAiBehavior(Game* game, Behavior* behavior)
 {
-	
+	EnemyAiBehavior* b = (EnemyAiBehavior*)behavior;
+	Entity* entity = b->base.entity;
+    
+	// This is all a great big hacky mess to get things moving on the screen
+	// because moving things are more exciting than things that are not moving.
+
+	b->movementTimer -= game->delta;
+
+	if(entity->position.y > game->internalResolution.y+16)
+		entity->position.y = -16;
+
+	if(b->movementTimer < 0)
+	{
+		b->movementTimer = 1 + randomf(3);
+		b->movementPattern = randomBetweeni(0, 3);
+		b->target = createPointf(
+			randomBetweenf(32, game->internalResolution.x - 32), 
+			randomBetweenf(32, game->internalResolution.y - 64));
+
+		entity->velocity = createPointf(0.0f, 0.0f);
+
+		if(b->movementPattern == MOVEMENT_CHARGE)
+		{
+			if(randomi(2) == 1)
+				b->movementTimer = 0.0f;
+			else
+				b->movementTimer = 
+					(game->internalResolution.y + 32) / (b->speed * 2);
+		}
+		if(b->movementPattern == MOVEMENT_CIRCLE)
+			b->movementTimer = (float)ceil(b->movementTimer);
+	}
+
+    switch((int)b->movementPattern)
+    {
+    	case MOVEMENT_WAIT: {
+    		entity->velocity = 
+    			createPointf(
+    				0.0f, 
+    				-sin(degToRad(b->movementTimer * 360.0f)) * b->speed * 0.2);
+    		} break;
+
+    	case MOVEMENT_TARGET: {
+    		entity->velocity = 
+    			scalePointf(
+					normalizePointf(
+						subtractPointfs(b->target, entity->position)
+					), b->speed);
+
+    		if(distanceBetweenPointfs(b->target, entity->position) 
+    			< b->speed * game->delta)
+				b->movementTimer = 0;
+    		} break;
+
+    	case MOVEMENT_CIRCLE: {
+			float circleSpeed = 0.5f;
+
+    		entity->velocity = createPointf(
+				cos(degToRad(b->movementTimer * 360.0f * circleSpeed)) 
+					* b->speed * 2,
+				-sin(degToRad(b->movementTimer * 360.0f * circleSpeed)) 
+					* b->speed * 2);
+    		} break;
+
+    	case MOVEMENT_CHARGE: {
+    		entity->velocity = createPointf(0, b->speed * 2);
+    		} break;
+    }
 }

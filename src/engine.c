@@ -423,6 +423,17 @@ void drawParticles(Game* game)
 		}
 }
 
+int entityCount(Game* game, int type)
+{
+	int count = 0;
+	
+	for(int i = 0; i < MAX_ENTITIES_PER_GAME; ++i)
+		if(game->entities[i].alive && game->entities[i].type == type)
+			++count;
+
+	return count;
+}
+
 Entity* getCollision(Game* game, Entity* entity, int type)
 {
 	for(int i = 0; i < MAX_ENTITIES_PER_GAME; ++i)

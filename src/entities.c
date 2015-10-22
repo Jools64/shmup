@@ -13,6 +13,7 @@ Entity* createPlayer(Game* game, Pointf position)
 	mb->shootDelay = 0.1;
 	mb->shootTimer = 0;
 	mb->moveSpeed = 120;
+	mb->health = mb->maxHealth = 1;
 	entity->behaviors.mob = mb;
 	
 	PlayerBehavior* pb = 
@@ -46,7 +47,7 @@ Entity* createEnemy(Game* game, Pointf position)
 			&game->behaviorPools.mob, entity);
 	mb->shootDelay = 0.1;
 	mb->moveSpeed = 120;
-	mb->health = mb->maxHealth = 3;
+	mb->health = mb->maxHealth = 2;
 	mb->scoreReward = 152;
 	mb->deathAnimation = true;
 	entity->behaviors.mob = mb;
@@ -54,7 +55,9 @@ Entity* createEnemy(Game* game, Pointf position)
 	EnemyAiBehavior* eab =
 		(EnemyAiBehavior*) createBehaviorFromPool(
 				&game->behaviorPools.enemyAi, entity);
-	eab->movementPattern = 0;
+	eab->movementPattern = MOVEMENT_WAIT;
+	eab->movementTimer = 0.5f + randomf(1);
+	eab->speed = 60;
 	entity->behaviors.enemyAi = eab;
 	
 	return entity;

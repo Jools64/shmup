@@ -94,6 +94,8 @@ void updateGame(Game* game)
 {
 	if(checkKeyReleased(game, SDLK_r))
 		loadLevel(game);
+	if(entityCount(game, ENEMY) == 0)
+		loadLevel(game);
 }
 
 void startGame(Game* game)

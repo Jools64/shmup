@@ -1,6 +1,6 @@
 int randomi(int max)
 {
-	return (rand() % max) + 1;
+	return (rand() % max);
 }
 
 float randomf(float max)
@@ -11,7 +11,7 @@ float randomf(float max)
 int randomBetweeni(int min, int max)
 {
 	int delta = max - min;
-	return min + randomi(delta);
+	return min + randomi(delta+1);
 }
 
 float randomBetweenf(float min, float max)
@@ -90,6 +90,20 @@ Pointf subtractPointfs(Pointf a, Pointf b)
 Pointf scalePointf(Pointf point, float scaler)
 {
 	return createPointf(point.x * scaler, point.y * scaler);
+}
+
+float distanceBetweenPointfs(Pointf first, Pointf second)
+{
+	Pointf delta = createPointf(second.x - first.x, second.y - first.y);
+	return sqrt(delta.x * delta.x + delta.y * delta.y);
+}
+
+Pointf normalizePointf(Pointf point)
+{
+	float distance = distanceBetweenPointfs(createPointf(0, 0), point);
+	if(distance > 0)
+		return scalePointf(point, 1.0f / distance);
+	return point;
 }
 
 Pointi scalePointi(Pointf point, float scaler)
