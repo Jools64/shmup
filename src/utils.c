@@ -53,6 +53,11 @@ float degToRad(float degrees)
 	return degrees * (PI / 180);
 }
 
+float clampf(float value, float min, float max)
+{
+	return value < min ? min : value > max ? max : value;
+}
+
 Color createColor(byte r, byte g, byte b, byte a)
 {
 	Color color = {r, g, b, a};
@@ -68,6 +73,14 @@ Pointi createPointi(int x, int y)
 Pointf createPointf(float x, float y)
 {
 	Pointf point = {x, y};
+	return point;
+}
+
+Pointf clampPointf(Pointf point, float x1, float y1, float x2, float y2)
+{
+	point.x = clampf(point.x, x1, x2);
+	point.y = clampf(point.y, y1, y2);
+	
 	return point;
 }
 

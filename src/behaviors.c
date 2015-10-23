@@ -151,6 +151,10 @@ void updatePlayerBehavior(Game* game, Behavior* behavior)
 	
 	if(getCollision(game, entity, ENEMY))
 		hurtMob(entity, 1);
+	
+	entity->position = clampPointf(entity->position, 8, 8, 
+		game->internalResolution.x-8, 
+		game->internalResolution.y-8);
 
 	if(!entity->behaviors.mob->dead)
 	{
