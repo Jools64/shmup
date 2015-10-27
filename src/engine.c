@@ -1,3 +1,12 @@
+/*
+	Including this file expects that the following files will also be in the directory:
+	
+	behaviors.c
+	generated.c
+	entities.c
+	utils.c
+*/
+
 #include "utils.c"
 
 bool doRectangleisIntersect(Rectanglei a, Rectanglei b)
@@ -730,5 +739,133 @@ void drawText(Game* game, int fontId, char* string, Pointf position, int depth)
 			offset.x = 0;
 			offset.y += font->characterSize.y;
 		}
+	}
+}
+
+#include "behaviors.c"
+#include "generated.c"
+#include "entities.c"
+
+Game* createGame(char* title, int width, int height, float windowScale)
+{
+	printf("Allocating %fMB of memory...\n", (float)sizeof(Game)/1024/1024);
+	Game* game = (Game*)calloc(1, sizeof(Game));
+	printf("Success!\n");
+	game->internalResolution = createPointi(width, height);
+	game->windowScale = windowScale;
+	
+	State state;
+	state.level = 1;
+	state.stage = 1;
+	state.lives = 5;
+	state.score = 0;
+	game->state = state;
+	
+	game->window = SDL_CreateWindow(
+		title,
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		(int)((float)width * windowScale), (int)((float)height * windowScale),
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN); 
+		//SDL_WINDOW_FULLSCREEN_DESKTOP);
+	
+	game->renderer = 
+		SDL_CreateRenderer(game->window, -1, 
+			SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_RenderSetLogicalSize(game->renderer, width, height);
+		
+	SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
+	
+	game->clearColor = createColor(0, 0, 0, 255);
+		
+	return game;
+}
+
+void initGame(Game* game)
+{
+	srand(time(null));
+	
+	game->running = true;
+	game->lastTime = SDL_GetTicks();
+	game->camera.size = game->internalResolution;
+	game->camera.position = 
+		createPointf(
+			(float)game->camera.size.x / 2, 
+			(float)game->camera.size.y / 2);
+	
+	initBehaviorPools(&game->behaviorPools);
+}
+
+void updateGame(Game* game)
+{
+	int time = SDL_GetTicks();
+	game->delta = (float)(time - game->lastTime) / 1000.0f;
+	game->lastTime = time;
+	
+	for(int i = 0; i < MAX_KEYS; ++i)
+		game->keysPressed[i] = game->keysReleased[i] = false;
+	
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch(event.type)
+		{
+			case SDL_QUIT:
+				game->running = false;
+				break;
+			case SDL_KEYUP:
+				game->keys[event.key.keysym.sym & 255] = false;
+				game->keysPressed[event.key.keysym.sym & 255] = true;
+				break;
+			case SDL_KEYDOWN:
+				game->keys[event.key.keysym.sym & 255] = true;
+				game->keysReleased[event.key.keysym.sym & 255] = true;
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				break;
+			case SDL_MOUSEBUTTONUP:
+				break;
+		}
+	}
+	
+	updateBackground(game);
+	updateBehaviorPools(game, &game->behaviorPools);
+			
+	for(int i = 0; i < MAX_ENTITIES_PER_GAME; ++i)
+		if(game->entities[i].alive)
+			updateEntity(game, &game->entities[i]);
+			
+	updateParticles(game);
+}
+
+void drawGame(Game* game)
+{
+	setDrawColor(game, game->clearColor);
+	SDL_RenderClear(game->renderer);
+	
+	drawBackground(game);
+	
+	for(int i = 0; i < MAX_ENTITIES_PER_GAME; ++i)
+		if(game->entities[i].alive)
+			drawEntity(game, &game->entities[i]);
+			
+	drawBehaviorPools(game, &game->behaviorPools);
+	drawParticles(game);
+	
+	sortRenderQueue(game);
+	flushRenderQueue(game);
+
+	SDL_RenderPresent(game->renderer);
+	
+	game->frameTimer += game->delta;
+	game->frameCounter++;
+	if(game->frameTimer > 1)
+	{
+		game->frameTimer -= 1;
+		if(game->frameTimer > 1)
+			game->frameTimer = 0;
+			
+		game->fps = game->frameCounter;
+		game->frameCounter = 0;
 	}
 }

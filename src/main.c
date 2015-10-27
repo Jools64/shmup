@@ -11,18 +11,10 @@
 
 /*
 	Task List:
-		+ Make the behavior system more automated in terms of updating and
-		  destroying behaviors and all that.
 		+ Split the engine code from the game code.
 */
 
-// Pre-processor functions
-#define defineBehavior(name,structName,updateFunction,drawFunction)
-
 #include "engine.c"
-#include "behaviors.c"
-#include "generated.c"
-#include "entities.c"
 
 void loadAssets(Game* game)
 {
@@ -52,163 +44,53 @@ void loadLevel(Game* game)
 	game->background.depth = 1000;
 }
 
-Game* createGame(char* title, int width, int height, float windowScale)
+void drawUi(Game* game)
 {
-	printf("Allocating %fMB of memory...\n", (float)sizeof(Game)/1024/1024);
-	Game* game = (Game*)calloc(1, sizeof(Game));
-	printf("Success!\n");
-	game->internalResolution = createPointi(width, height);
-	game->windowScale = windowScale;
-	
-	State state;
-	state.level = 1;
-	state.stage = 1;
-	state.lives = 5;
-	state.score = 0;
-	game->state = state;
-	
-	game->window = SDL_CreateWindow(
-		title,
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		(int)((float)width * windowScale), (int)((float)height * windowScale),
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN); 
-		//SDL_WINDOW_FULLSCREEN_DESKTOP);
-	
-	game->renderer = 
-		SDL_CreateRenderer(game->window, -1, 
-			SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	SDL_RenderSetLogicalSize(game->renderer, width, height);
+	char uiString[255];
 		
-	SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
+	char scoreString[9];
+	intToFixedSizeString(game->state.score, 8, scoreString);
 	
-	game->clearColor = createColor(0, 0, 0, 255);
+	char livesString[3];
+	intToFixedSizeString(game->state.lives, 2, livesString);
 	
-	defineFont(game, &game->assets.textures.font, createPointi(8, 8),
-		"abcdefghijklmnopqrstuvwxyz0123456789.,:!-");
-		
-	return game;
-}
+	sprintf(uiString, 
+		"score:%s    lives:%s    level:%d-%d", 
+		scoreString, 
+		livesString, 
+		game->state.stage,
+		game->state.level);
+	drawText(game, 0, uiString, createPointf(4, 4), -1000);
 
-void updateGame(Game* game)
-{
-	if(checkKeyReleased(game, SDLK_r))
-		loadLevel(game);
-	if(entityCount(game, ENEMY) == 0)
-		loadLevel(game);
+	sprintf(uiString, 
+		"fps:%d", 
+		game->fps);
+	drawText(game, 0, uiString, createPointf(4, 240-8-4), -1000);
 }
 
 void startGame(Game* game)
 {
-	srand(time(null));
+	initGame(game);
 	
-	game->running = true;
-	game->camera.size = game->internalResolution;
-	game->camera.position = 
-		createPointf(
-			(float)game->camera.size.x / 2, 
-			(float)game->camera.size.y / 2);
-	
-	initBehaviorPools(&game->behaviorPools);
+	defineFont(game, &game->assets.textures.font, createPointi(8, 8),
+		"abcdefghijklmnopqrstuvwxyz0123456789.,:!-");
+		
 	loadLevel(game);
-
-	SDL_Event event;
-	int lastTime = SDL_GetTicks();
+	
 	while(game->running)
-	{
-		int time = SDL_GetTicks();
-		game->delta = (float)(time - lastTime) / 1000.0f;
-		lastTime = time;
-		
-		for(int i = 0; i < MAX_KEYS; ++i)
-			game->keysPressed[i] = game->keysReleased[i] = false;
-		
-		while (SDL_PollEvent(&event))
-		{
-			switch(event.type)
-			{
-				case SDL_QUIT:
-					game->running = false;
-					break;
-				case SDL_KEYUP:
-					game->keys[event.key.keysym.sym & 255] = false;
-					game->keysPressed[event.key.keysym.sym & 255] = true;
-					break;
-				case SDL_KEYDOWN:
-					game->keys[event.key.keysym.sym & 255] = true;
-					game->keysReleased[event.key.keysym.sym & 255] = true;
-					break;
-				case SDL_MOUSEBUTTONDOWN:
-					break;
-				case SDL_MOUSEBUTTONUP:
-					break;
-			}
-		}
+	{			
+		updateGame(game);
 		
 		if(checkKey(game, SDLK_ESCAPE))
 			game->running = false;
+		if(checkKeyReleased(game, SDLK_r))
+			loadLevel(game);
+		if(entityCount(game, ENEMY) == 0)
+			loadLevel(game);
 				
-		updateGame(game);
-		updateBackground(game);
-				
-		updateBehaviorPools(game, &game->behaviorPools);
-				
-		for(int i = 0; i < MAX_ENTITIES_PER_GAME; ++i)
-			if(game->entities[i].alive)
-				updateEntity(game, &game->entities[i]);
-				
-		updateParticles(game);
+		drawUi(game);
 		
-		setDrawColor(game, game->clearColor);
-		SDL_RenderClear(game->renderer);
-		
-		drawBackground(game);
-		
-		for(int i = 0; i < MAX_ENTITIES_PER_GAME; ++i)
-			if(game->entities[i].alive)
-				drawEntity(game, &game->entities[i]);
-				
-		drawBehaviorPools(game, &game->behaviorPools);
-				
-		drawParticles(game);
-				
-		char uiString[255];
-		
-		char scoreString[9];
-		intToFixedSizeString(game->state.score, 8, scoreString);
-		
-		char livesString[3];
-		intToFixedSizeString(game->state.lives, 2, livesString);
-		
-		sprintf(uiString, 
-			"score:%s    lives:%s    level:%d-%d", 
-			scoreString, 
-			livesString, 
-			game->state.stage,
-			game->state.level);
-		drawText(game, 0, uiString, createPointf(4, 4), -1000);
-
-		sprintf(uiString, 
-			"fps:%d", 
-			game->fps);
-		drawText(game, 0, uiString, createPointf(4, 240-8-4), -1000);
-		
-		sortRenderQueue(game);
-		flushRenderQueue(game);
-
-		SDL_RenderPresent(game->renderer);
-		
-		game->frameTimer += game->delta;
-		game->frameCounter++;
-		if(game->frameTimer > 1)
-		{
-			game->frameTimer -= 1;
-			if(game->frameTimer > 1)
-				game->frameTimer = 0;
-				
-			game->fps = game->frameCounter;
-			game->frameCounter = 0;
-		}
+		drawGame(game);
 	}
 }
 
