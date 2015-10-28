@@ -11,4 +11,7 @@ void initBehaviorPools(BehaviorPools* behaviorPools)
 
 	initBehaviorPool(&behaviorPools->enemyAi, 
 		sizeof(EnemyAiBehavior), updateEnemyAiBehavior, null);
+
+	initBehaviorPool(&behaviorPools->scoreMessage, 
+		sizeof(ScoreMessageBehavior), updateScoreMessageBehavior, drawScoreMessageBehavior);
 }

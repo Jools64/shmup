@@ -2,6 +2,7 @@
 
 typedef enum EntityType
 {
+	NONE,
 	PLAYER,
 	ENEMY,
 	POWER_UP,

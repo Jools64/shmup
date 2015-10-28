@@ -46,6 +46,8 @@ Entity* createPlayerBullet(Game* game, Pointf position);
 
 defineBehavior(mob, MobBehavior, updateMobBehavior, null);
 
+Entity* createScoreMessage(Game* game, Pointf position, int score);
+
 void updateMobBehavior(Game* game, Behavior* behavior)
 {
 	MobBehavior* b = (MobBehavior*)behavior;
@@ -88,6 +90,7 @@ void updateMobBehavior(Game* game, Behavior* behavior)
 		
 		if(!b->invincible)
 		{
+			createScoreMessage(game, entity->position, b->scoreReward);
 			game->state.score += b->scoreReward;
 			entity->sprite.scale.x += 1.0f;
 			entity->sprite.scale.y += 1.0f;
@@ -251,4 +254,34 @@ void updateEnemyAiBehavior(Game* game, Behavior* behavior)
     		entity->velocity = createPointf(0, b->speed * 2);
     		} break;
     }
+}
+
+// -----------------------------------------------------------------------------
+// Score Message
+// -----------------------------------------------------------------------------
+
+defineBehavior(scoreMessage, ScoreMessageBehavior, updateScoreMessageBehavior, drawScoreMessageBehavior);
+
+void updateScoreMessageBehavior(Game* game, Behavior* behavior)
+{
+	ScoreMessageBehavior* b = (ScoreMessageBehavior*)behavior;
+	Entity* entity = b->base.entity;
+
+	b->movementTimer -= game->delta;
+
+	b->lifeTimer -= game->delta;
+	if(b->lifeTimer < 0)
+		destroyEntity(entity);
+		
+	entity->velocity = createPointf(sin(degToRad(b->movementTimer * 360))*20.0f, -b->speed);
+}
+
+void drawScoreMessageBehavior(Game* game, Behavior* behavior)
+{
+	ScoreMessageBehavior* b = (ScoreMessageBehavior*)behavior;
+	Entity* entity = b->base.entity;
+	
+	setDrawAlpha(game, clampf((b->lifeTimer * 2.0) / b->maxLife, 0, 1));
+	drawText(game, 0, b->scoreString, entity->position, -1000);
+	setDrawAlpha(game, 1.0f);
 }

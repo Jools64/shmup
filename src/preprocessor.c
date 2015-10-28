@@ -143,7 +143,7 @@ typedef struct BehaviorInfo
 
 char* cloneCString(char* string)
 {
-	char* clone = (char*)malloc(strlen(string));
+	char* clone = (char*)malloc(strlen(string)+1);
 	strcpy(clone, string);
 	return clone;
 }

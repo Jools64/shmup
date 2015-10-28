@@ -89,9 +89,14 @@ void pushRenderItem(Game* game, RenderItem renderItem)
 	}
 }
 
+void setDrawAlpha(Game* game, float alpha)
+{
+	game->drawAlpha = alpha;
+}
+
 void internalDrawTextureSectionExt(Game* game, Texture* texture, Pointf position,
 	Pointi sourcePosition, Pointi sourceSize, Pointf scale, float angle,
-	Pointi origin, bool horizontalFlip, bool verticalFlip)
+	Pointi origin, bool horizontalFlip, bool verticalFlip, float alpha)
 {
 	Pointi offset;
 	offset.x = (sourceSize.x * (scale.x - 1)) / 2;
@@ -117,8 +122,14 @@ void internalDrawTextureSectionExt(Game* game, Texture* texture, Pointf position
 	
 	SDL_Point originSdl = getSdlPointi(origin);
 	
+	if(alpha < 1.0f)
+		SDL_SetTextureAlphaMod(texture->data, (int)(alpha * 255));
+		
 	SDL_RenderCopyEx(game->renderer, texture->data, &source, &destination,
 		angle, &originSdl, flip);
+		
+	if(alpha < 1.0f)
+		SDL_SetTextureAlphaMod(texture->data, 255);
 }
 
 void drawTextureSectionExt(Game* game, Texture* texture, Pointf position,
@@ -138,6 +149,8 @@ void drawTextureSectionExt(Game* game, Texture* texture, Pointf position,
 	item.angle = angle;
 	item.horizontalFlip = horizontalFlip;
 	item.verticalFlip = verticalFlip;
+	
+	item.alpha = game->drawAlpha;
 	
 	pushRenderItem(game, item);
 }
@@ -244,7 +257,7 @@ void flushRenderQueue(Game* game)
 			),
 			item->sourcePosition, item->sourceSize,
 			item->scale, item->angle, item->origin, 
-			item->horizontalFlip, item->verticalFlip); 
+			item->horizontalFlip, item->verticalFlip, item->alpha); 
 	}
 	
 	game->renderItemCount = 0;
@@ -777,6 +790,7 @@ Game* createGame(char* title, int width, int height, float windowScale)
 	SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
 	
 	game->clearColor = createColor(0, 0, 0, 255);
+	game->drawAlpha = 1.0f;
 		
 	return game;
 }

@@ -136,7 +136,7 @@ typedef struct RenderItem
 	Texture* texture; 
 	Pointf position, scale; 
 	Pointi origin, sourcePosition, sourceSize;
-	float angle;
+	float angle, alpha;
 	bool horizontalFlip, verticalFlip;
 } RenderItem;
 
@@ -168,6 +168,7 @@ typedef struct Game
 	State state;
 	RenderItem renderItems[MAX_RENDER_ITEMS_PER_GAME];
 	int renderItemCount;
+	float drawAlpha;
 	float frameTimer;
 	int frameCounter, fps, lastTime;
 	Camera camera;

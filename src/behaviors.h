@@ -39,3 +39,10 @@ typedef struct EnemyAiBehavior
 	float movementTimer, speed;
 	Pointf target;
 } EnemyAiBehavior;
+
+typedef struct ScoreMessageBehavior
+{
+	Behavior base;
+	char scoreString[8];
+	float movementTimer, speed, lifeTimer, maxLife;
+} ScoreMessageBehavior;

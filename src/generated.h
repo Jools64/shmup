@@ -5,6 +5,7 @@ typedef struct __attribute__((__packed__)) Behaviors
 	MobBehavior* mob;
 	PlayerBehavior* player;
 	EnemyAiBehavior* enemyAi;
+	ScoreMessageBehavior* scoreMessage;
 } Behaviors;
 
 typedef struct __attribute__((__packed__)) BehaviorPools
@@ -14,5 +15,6 @@ typedef struct __attribute__((__packed__)) BehaviorPools
 	BehaviorPool mob;
 	BehaviorPool player;
 	BehaviorPool enemyAi;
+	BehaviorPool scoreMessage;
 } BehaviorPools;
 

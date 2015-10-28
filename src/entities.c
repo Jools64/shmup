@@ -84,3 +84,21 @@ Entity* createPlayerBullet(Game* game, Pointf position)
 	
 	return entity;
 }
+
+Entity* createScoreMessage(Game* game, Pointf position, int score)
+{
+	Entity* entity = createEntity(game, NONE, position);
+	
+	ScoreMessageBehavior* smb = 
+		(ScoreMessageBehavior*) createBehaviorFromPool(
+			&game->behaviorPools.scoreMessage, entity);
+			
+	sprintf(smb->scoreString, "%d", score);
+	smb->speed = 30;
+	smb->lifeTimer = smb->maxLife = 1;
+	
+	entity->behaviors.scoreMessage = smb;
+	
+	entity->position.x -= 
+		(strlen(smb->scoreString)*game->font.characterSize.x) / 2;
+}

@@ -12,6 +12,8 @@
 /*
 	Task List:
 		+ Split the engine code from the game code.
+		+ Split renderer stuff from game struct and functions.
+		+ Implement assets system.
 */
 
 #include "engine.c"
